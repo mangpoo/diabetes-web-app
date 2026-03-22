@@ -2,7 +2,6 @@ Flask
 Bootstrap-Flask
 Flask-WTF
 gunicorn
-pandas
-scikit-learn
 numpy
-keras
+scikit-learn
+joblib

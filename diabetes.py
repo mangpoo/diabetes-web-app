@@ -1,29 +1,25 @@
 import numpy as np
-import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
+import joblib
 from flask import Flask, render_template
-import keras
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'hard to guess string'
-
 from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'hard to guess string'
 bootstrap5 = Bootstrap5(app)
 
 class LabForm(FlaskForm):
-    preg     = StringField('# Pregnancies',  validators=[DataRequired()])
-    glucose  = StringField('Glucose',        validators=[DataRequired()])
-    blood    = StringField('Blood pressure', validators=[DataRequired()])
-    skin     = StringField('Skin thickness', validators=[DataRequired()])
-    insulin  = StringField('Insulin',        validators=[DataRequired()])
-    bmi      = StringField('BMI',            validators=[DataRequired()])
-    dpf      = StringField('DPF Score',      validators=[DataRequired()])
-    age      = StringField('Age',            validators=[DataRequired()])
-    submit   = SubmitField('Submit')
+    preg    = StringField('# Pregnancies',  validators=[DataRequired()])
+    glucose = StringField('Glucose',        validators=[DataRequired()])
+    blood   = StringField('Blood pressure', validators=[DataRequired()])
+    skin    = StringField('Skin thickness', validators=[DataRequired()])
+    insulin = StringField('Insulin',        validators=[DataRequired()])
+    bmi     = StringField('BMI',            validators=[DataRequired()])
+    dpf     = StringField('DPF Score',      validators=[DataRequired()])
+    age     = StringField('Age',            validators=[DataRequired()])
+    submit  = SubmitField('Submit')
 
 @app.route('/')
 @app.route('/index')
@@ -43,17 +39,12 @@ def lab():
                             float(form.dpf.data),
                             float(form.age.data)]])
 
-        data = pd.read_csv('./diabetes.csv', sep=',')
-        X = data.values[:, 0:8]
-        scaler = MinMaxScaler()
-        scaler.fit(X)
-        X_test = scaler.transform(X_test)
+        scaler = joblib.load('pima_scaler.pkl')
+        model  = joblib.load('pima_model.pkl')
 
-        model = keras.models.load_model('pima_model.keras')
-        prediction = model.predict(X_test)
-        res = prediction[0][0]
-        res = np.round(res, 2)
-        res = float(np.round(res * 100))
+        X_scaled = scaler.transform(X_test)
+        prob = model.predict_proba(X_scaled)[0][1]
+        res  = float(round(prob * 100))
 
         return render_template('result.html', res=res)
     return render_template('prediction.html', form=form)
