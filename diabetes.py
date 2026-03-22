@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from flask import Flask, render_template
-from tensorflow import keras
+import keras
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hard to guess string'
